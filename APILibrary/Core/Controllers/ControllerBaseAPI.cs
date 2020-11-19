@@ -125,24 +125,51 @@ namespace APILibrary
 
         // get all by field
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields)
+        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields,string asc,string desc)
         {
             var query = _context.Set<TModel>().AsQueryable();
 
+            List<dynamic> finish = await query.ToListAsync<dynamic>();
             if (!string.IsNullOrWhiteSpace(fields))
             {
                 var tab = fields.Split(',');
-
+     
                 // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
                 var results = await query.SelectDynamic(tab).ToListAsync();
 
-                return results.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
-
+                finish = results.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
             }
-            else
+            if (!string.IsNullOrWhiteSpace(asc))
             {
-                return Ok(ToJsonList(await query.ToListAsync()));
+                var x = asc.Split(',');
+                foreach (string element in x)
+                {
+                    finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                }
+                /* foreach (string element in x)
+                 {
+                     finish = query.OrderByx(element, false).ToList();
+                 }*/
             }
+            if (!string.IsNullOrWhiteSpace(desc))
+             {
+                 var x = desc.Split(',');
+                 foreach (string element in x)
+                 {
+                     finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                 }
+                 /* foreach (string element in x) {
+                     finish = query.OrderByx(element, true).ToList();
+                    }
+                if (!string.IsNullOrWhiteSpace(fields))
+                 {
+                     var tab = fields.Split(',');
+                     finish= finish.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
+                 }*/
+            }
+
+
+            return Ok(ToJsonList(finish));
 
         }
 
@@ -182,5 +209,8 @@ namespace APILibrary
                 }
             }
         }
+
+
+
     }
 }
