@@ -126,35 +126,47 @@ namespace APILibrary
 
         // get all by field
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields, [FromQuery] string range)
+        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields,string asc,string desc)
         {
             var query = _context.Set<TModel>().AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(fields))
-            {        
-                var fieldsArray = fields.Split(',');
-
-                // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
-                var results = await query.SelectDynamic(fieldsArray).ToListAsync();
-
-                return results.Select((x) => IQueryableExtensions.SelectObject(x, fieldsArray)).ToList();
-
-            }
-            if (!string.IsNullOrWhiteSpace(range))
+            List<dynamic> finish = await query.ToListAsync<dynamic>();
+            var qx = finish.AsQueryable();
+     
+            if (!string.IsNullOrWhiteSpace(asc))
             {
-                var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
-                int countOfData = query.Count();
+                var x = asc.Split(',');
+               /* foreach (string element in x)
+                {
+                    finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                }*/
+                foreach (string element in x)
+                 {
+                     finish = query.OrderByx(element, false).ToList();
+                 }
+             }
+             if (!string.IsNullOrWhiteSpace(desc))
+             {
+                 var x = desc.Split(',');
+                 /*foreach (string element in x)
+                 {
+                     finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                 }*/
+                  foreach (string element in x) {
+                     finish = query.OrderByx(element, true).ToList();
+                    }
 
-                HttpContext.Response.Headers.Add("Link", rangeArray[0]+"-"+rangeArray[1]);
-                HttpContext.Response.Headers.Add("Content-Range", rangeArray[0]+"-"+rangeArray[1]+"/"+countOfData);
-                HttpContext.Response.Headers.Add("Accept-Range", "50");
+            }
+             if (!string.IsNullOrWhiteSpace(fields))
+             {
+                 var tab = fields.Split(',');
+                 // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
+                  //finish = await query.SelectDynamic(tab).ToListAsync();
 
-                return query.SelectRange(rangeArray[0], rangeArray[1]).ToList();
-            }
-            else
-            {
-                return Ok(ToJsonList(await query.ToListAsync()));
-            }
+                 finish = finish.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
+             }
+
+            return Ok(ToJsonList(finish));
 
         }
 
@@ -194,5 +206,8 @@ namespace APILibrary
                 }
             }
         }
+
+
+
     }
 }
