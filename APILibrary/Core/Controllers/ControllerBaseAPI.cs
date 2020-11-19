@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading.Tasks;
 using APILibrary.Core.Attributes;
@@ -125,19 +126,30 @@ namespace APILibrary
 
         // get all by field
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields)
+        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields, [FromQuery] string range)
         {
             var query = _context.Set<TModel>().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(fields))
-            {
-                var tab = fields.Split(',');
+            {        
+                var fieldsArray = fields.Split(',');
 
                 // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
-                var results = await query.SelectDynamic(tab).ToListAsync();
+                var results = await query.SelectDynamic(fieldsArray).ToListAsync();
 
-                return results.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
+                return results.Select((x) => IQueryableExtensions.SelectObject(x, fieldsArray)).ToList();
 
+            }
+            if (!string.IsNullOrWhiteSpace(range))
+            {
+                var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
+                int countOfData = query.Count();
+
+                HttpContext.Response.Headers.Add("Link", rangeArray[0]+"-"+rangeArray[1]);
+                HttpContext.Response.Headers.Add("Content-Range", rangeArray[0]+"-"+rangeArray[1]+"/"+countOfData);
+                HttpContext.Response.Headers.Add("Accept-Range", "50");
+
+                return query.SelectRange(rangeArray[0], rangeArray[1]).ToList();
             }
             else
             {

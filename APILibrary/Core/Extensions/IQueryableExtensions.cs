@@ -65,5 +65,10 @@ namespace APILibrary.Core.Extensions
 
             return query.Select(lambda);
         }
+
+        public static IQueryable<dynamic> SelectRange<TModel>(this IQueryable<TModel> query, int start, int range) where TModel : ModelBase
+        {
+            return query.Skip(start).Take(range);
+        }
     }
 }
