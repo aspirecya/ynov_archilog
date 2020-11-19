@@ -126,45 +126,57 @@ namespace APILibrary
 
         // get all by field
         [HttpGet]
-        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields,string asc,string desc)
+        public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields, [FromQuery] string asc, [FromQuery] string desc, [FromQuery] string range)
         {
             var query = _context.Set<TModel>().AsQueryable();
 
             List<dynamic> finish = await query.ToListAsync<dynamic>();
             var qx = finish.AsQueryable();
-     
+
             if (!string.IsNullOrWhiteSpace(asc))
             {
                 var x = asc.Split(',');
-               /* foreach (string element in x)
+                /* foreach (string element in x)
+                 {
+                     finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                 }*/
+                foreach (string element in x)
                 {
-                    finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                    finish = query.OrderByx(element, false).ToList();
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(desc))
+            {
+                var x = desc.Split(',');
+                /*foreach (string element in x)
+                {
+                    finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
                 }*/
                 foreach (string element in x)
-                 {
-                     finish = query.OrderByx(element, false).ToList();
-                 }
-             }
-             if (!string.IsNullOrWhiteSpace(desc))
-             {
-                 var x = desc.Split(',');
-                 /*foreach (string element in x)
-                 {
-                     finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
-                 }*/
-                  foreach (string element in x) {
-                     finish = query.OrderByx(element, true).ToList();
-                    }
+                {
+                    finish = query.OrderByx(element, true).ToList();
+                }
 
             }
-             if (!string.IsNullOrWhiteSpace(fields))
-             {
-                 var tab = fields.Split(',');
-                 // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
-                  //finish = await query.SelectDynamic(tab).ToListAsync();
+            if (!string.IsNullOrWhiteSpace(range))
+            {
+                var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
+                int countOfData = query.Count();
 
-                 finish = finish.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
-             }
+                HttpContext.Response.Headers.Add("Link", rangeArray[0] + "-" + rangeArray[1]);
+                HttpContext.Response.Headers.Add("Content-Range", rangeArray[0] + "-" + rangeArray[1] + "/" + countOfData);
+                HttpContext.Response.Headers.Add("Accept-Range", "50");
+
+                finish = query.SelectRange(rangeArray[0], rangeArray[1]).ToList();
+            }
+            if (!string.IsNullOrWhiteSpace(fields))
+            {
+                var tab = fields.Split(',');
+                // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
+                //finish = await query.SelectDynamic(tab).ToListAsync();
+
+                finish = finish.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
+            }
 
             return Ok(ToJsonList(finish));
 
