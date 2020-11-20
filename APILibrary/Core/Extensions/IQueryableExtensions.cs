@@ -35,7 +35,7 @@ namespace APILibrary.Core.Extensions
             }
             return expo;
         }
-        public static IQueryable<dynamic> OrderByx<TModel>(this IQueryable<TModel> query, string orderByProperty,bool desc)
+        public static IQueryable<TModel> OrderByx<TModel>(this IQueryable<TModel> query, string orderByProperty,bool desc) 
         {
             string command = desc ? "OrderByDescending" : "OrderBy";
                 var type = typeof(TModel);
@@ -43,9 +43,10 @@ namespace APILibrary.Core.Extensions
                var parameter = Expression.Parameter(type, "p");
                var propertyAccess = Expression.MakeMemberAccess(parameter, property);
                var orderByExpression = Expression.Lambda(propertyAccess, parameter);
+
                var resultExpression = Expression.Call(typeof(Queryable), command, new Type[] { type, property.PropertyType },
                                              query.Expression, Expression.Quote(orderByExpression));
-               return query.Provider.CreateQuery<dynamic>(resultExpression);
+               return query.Provider.CreateQuery<TModel>(resultExpression);
         }
 
         public static IQueryable<dynamic> SelectDynamic<TModel>(this IQueryable<TModel> query, string[] fields) where TModel : ModelBase
@@ -78,7 +79,7 @@ namespace APILibrary.Core.Extensions
             return query.Select(lambda);
         }
 
-        public static IQueryable<dynamic> SelectRange<TModel>(this IQueryable<TModel> query, int start, int range) where TModel : ModelBase
+        public static IQueryable<TModel> SelectRange<TModel>(this IQueryable<TModel> query, int start, int range) where TModel : ModelBase
         {
             return query.Skip(start).Take(range);
         }
