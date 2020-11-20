@@ -15,12 +15,13 @@ namespace APILibrary
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ControllerBaseAPI<TModel, TContext> : ControllerBase where TModel : ModelBase where TContext : DbContext 
+    public class ControllerBaseAPI<TModel, TContext> : ControllerBase where TModel : ModelBase where TContext : DbContext
     {
 
         protected readonly DbContext _context;
 
-        public ControllerBaseAPI(DbContext context) {
+        public ControllerBaseAPI(DbContext context)
+        {
             this._context = context;
         }
 
@@ -96,7 +97,7 @@ namespace APILibrary
 
             if (result != 0) { return NoContent(); } else { return NotFound(); }
         }
-       
+
 
         // update
         [HttpPut("{id}")]
@@ -105,14 +106,15 @@ namespace APILibrary
             bool result = await _context.Set<TModel>().AnyAsync(x => x.ID == id);
             if (!result) return NotFound(new { Message = "Not found." });
 
-            if(ModelState.IsValid && result)
+            if (ModelState.IsValid && result)
             {
                 try
                 {
                     _context.Update<TModel>(item);
                     await _context.SaveChangesAsync();
                     return Ok(item);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     return BadRequest(new { e.Message });
                 }
@@ -130,6 +132,9 @@ namespace APILibrary
         {
             var query = _context.Set<TModel>().AsQueryable();
 
+            var parma = Request.Query.Where((x) => x.Key != "fields" && x.Key != "asc" && x.Key != "desc");
+            Console.WriteLine(parma.Count());
+
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
@@ -145,10 +150,10 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(asc))
             {
                 var x = asc.Split(',');
-                 /*foreach (string element in x)
-                 {
-                     finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
-                 }*/
+                /*foreach (string element in x)
+                {
+                    finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                }*/
                 foreach (string element in x)
                 {
                     query = query.OrderByx(element, false);
@@ -157,23 +162,31 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(desc))
             {
                 var x = desc.Split(',');
-               /* foreach (string element in x)
-                {
-                    finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
-                }*/
-                 foreach (string element in x)
+                /* foreach (string element in x)
+                 {
+                     finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                 }*/
+                foreach (string element in x)
                 {
                     query = query.OrderByx(element, true);
                 }
 
             }
-
+            if (parma.Count() > 0 )
+            {
+                Console.WriteLine(parma.Count());
+                foreach (var element in parma)
+                {
+                            query = query.Filtres(element.Key, element.Value);
+                }
+            }
+            int i = 1;
 
             if (!string.IsNullOrWhiteSpace(fields))
             {
                 var tab = fields.Split(',');
                 // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
-               var res = await query.SelectDynamic(tab).ToListAsync();
+                var res = await query.SelectDynamic(tab).ToListAsync();
 
                 return res.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
             }
@@ -182,10 +195,11 @@ namespace APILibrary
                 return Ok(ToJsonList(query.ToList()));
             }
 
-         
 
-}
 
+        }
+
+        // get fields by id
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TModel>> GetById([FromRoute] int id, [FromQuery] string fields)
         {
@@ -222,3 +236,5 @@ namespace APILibrary
                 }
             }
         }
+    }
+}

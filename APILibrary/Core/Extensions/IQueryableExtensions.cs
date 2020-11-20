@@ -48,7 +48,69 @@ namespace APILibrary.Core.Extensions
                                              query.Expression, Expression.Quote(orderByExpression));
                return query.Provider.CreateQuery<TModel>(resultExpression);
         }
+        public static IQueryable<TModel> Filtres<TModel>(this IQueryable<TModel> query, string key, string value)
+        {
+            Expression finalExpression = Expression.Constant(true);
+            var type = typeof(TModel);
+            var property = type.GetProperty(key);// get type of property string datetime ect
+            ParameterExpression pe = Expression.Parameter(typeof(TModel), "s"); // get the type of data pizza or customer
+            MemberExpression me = Expression.Property(pe, key);// get the property to request
 
+            var xx = value.Split(",");// serch if operator
+            if (xx.Length > 1)
+            {
+                Expression expression = null;
+                if (value.Contains("]") && property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(int))
+                {
+                    /*if (value.Contains("[,"))// inferior
+                    {
+                            value = value.TrimEnd('[', ',', ']');
+                            ConstantExpression constant = Expression.Constant(value, property.PropertyType);
+                            finalExpression = Expression.LessThanOrEqual(me, constant);
+                    }
+                    else if (value.Contains(",]"))// superior
+                    {
+                        value = value.TrimEnd('[', ',', ']');
+                        ConstantExpression constant = Expression.Constant(value, property.PropertyType);
+                        finalExpression = Expression.GreaterThanOrEqual(me, constant);
+                    }
+                    else // fourchette (beetween)
+                    {
+                        Expression expression2 = null;
+                        value = value.TrimEnd('[',']');
+                        var x = value.Split(",");
+                        ConstantExpression constant1 = Expression.Constant(x[0], property.PropertyType);
+                        ConstantExpression constant2 = Expression.Constant(x[1], property.PropertyType);
+                        expression = Expression.GreaterThanOrEqual(me, constant1);
+                        expression2 = Expression.LessThanOrEqual(me, constant2);
+                        finalExpression = Expression.And(finalExpression, expression);
+                        finalExpression = Expression.And(finalExpression, expression2);
+                    }*/
+                }
+                else // OR 
+                {
+                    foreach(var x in xx)
+                    {
+                        var concerted = Convert.ChangeType(x, typeof(object));
+                        ConstantExpression constant = Expression.Constant(concerted, property.PropertyType);
+                        expression = Expression.Equal(me, constant);
+                        finalExpression = Expression.Or(finalExpression, expression);
+                    }
+                }
+
+            }
+            else // JUST EQUAL
+            {
+                ConstantExpression constant = Expression.Constant(value, property.PropertyType); // create value to compare with type
+                finalExpression = Expression.Equal(me, constant); // EQUAL EX: EMAIL==POKEMON@POKEMON.COM
+            }
+          
+
+            var ExpressionTree = Expression.Lambda<Func<TModel, bool>>(finalExpression, new[] { pe });
+
+            return query.Where(ExpressionTree);
+
+        }
         public static IQueryable<dynamic> SelectDynamic<TModel>(this IQueryable<TModel> query, string[] fields) where TModel : ModelBase
         {
             var parameter = Expression.Parameter(typeof(TModel), "x");
