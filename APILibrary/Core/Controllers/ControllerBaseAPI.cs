@@ -15,19 +15,18 @@ namespace APILibrary
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ControllerBaseAPI<TModel, TContext> : ControllerBase where TModel : ModelBase where TContext : DbContext 
+    public class ControllerBaseAPI<TModel, TContext> : ControllerBase where TModel : ModelBase where TContext : DbContext
     {
-
         protected readonly DbContext _context;
 
-        public ControllerBaseAPI(DbContext context) {
+        public ControllerBaseAPI(DbContext context)
+        {
             this._context = context;
         }
 
         protected IEnumerable<dynamic> ToJsonList(IEnumerable<dynamic> tab)
         {
-            var tabNew = tab.Select((x) =>
-            {
+            var tabNew = tab.Select((x) => {
                 return ToJson(x);
             });
             return tabNew;
@@ -44,25 +43,20 @@ namespace APILibrary
             {
                 foreach (var propDyn in dico)
                 {
-                    var propInTModel = collectionType.GetProperty(propDyn.Key, BindingFlags.Public |
-                            BindingFlags.IgnoreCase | BindingFlags.Instance);
+                    var propInTModel = collectionType.GetProperty(propDyn.Key, BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.Instance);
 
-                    var isPresentAttribute = propInTModel.CustomAttributes
-                    .Any(x => x.AttributeType == typeof(NotJsonAttribute));
+                    var isPresentAttribute = propInTModel.CustomAttributes.Any(x => x.AttributeType == typeof(NotJsonAttribute));
 
-                    if (!isPresentAttribute)
-                        expo.Add(propDyn.Key, propDyn.Value);
+                    if (!isPresentAttribute) expo.Add(propDyn.Key, propDyn.Value);
                 }
             }
             else
             {
                 foreach (var prop in collectionType.GetProperties())
                 {
-                    var isPresentAttribute = prop.CustomAttributes
-                    .Any(x => x.AttributeType == typeof(NotJsonAttribute));
+                    var isPresentAttribute = prop.CustomAttributes.Any(x => x.AttributeType == typeof(NotJsonAttribute));
 
-                    if (!isPresentAttribute)
-                        expo.Add(prop.Name, prop.GetValue(item));
+                    if (!isPresentAttribute) expo.Add(prop.Name, prop.GetValue(item));
                 }
             }
             return expo;
@@ -94,27 +88,40 @@ namespace APILibrary
             _context.Remove(item);
             int result = await _context.SaveChangesAsync();
 
-            if (result != 0) { return NoContent(); } else { return NotFound(); }
+            if (result != 0)
+            {
+                return NoContent();
+            }
+            else
+            {
+                return NotFound();
+            }
         }
-       
 
         // update
         [HttpPut("{id}")]
         public async Task<ActionResult<TModel>> UpdateItem([FromRoute] int id, [FromBody] TModel item)
         {
             bool result = await _context.Set<TModel>().AnyAsync(x => x.ID == id);
-            if (!result) return NotFound(new { Message = "Not found." });
+            if (!result) return NotFound(new
+            {
+                Message = "Not found."
+            });
 
-            if(ModelState.IsValid && result)
+            if (ModelState.IsValid && result)
             {
                 try
                 {
                     _context.Update<TModel>(item);
                     await _context.SaveChangesAsync();
                     return Ok(item);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
-                    return BadRequest(new { e.Message });
+                    return BadRequest(new
+                    {
+                        e.Message
+                    });
                 }
             }
 
@@ -145,10 +152,10 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(asc))
             {
                 var x = asc.Split(',');
-                 /*foreach (string element in x)
-                 {
-                     finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
-                 }*/
+                /*foreach (string element in x)
+                        {
+                            finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                        }*/
                 foreach (string element in x)
                 {
                     query = query.OrderByx(element, false);
@@ -157,23 +164,22 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(desc))
             {
                 var x = desc.Split(',');
-               /* foreach (string element in x)
-                {
-                    finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
-                }*/
-                 foreach (string element in x)
+                /* foreach (string element in x)
+                         {
+                             finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
+                         }*/
+                foreach (string element in x)
                 {
                     query = query.OrderByx(element, true);
                 }
 
             }
 
-
             if (!string.IsNullOrWhiteSpace(fields))
             {
                 var tab = fields.Split(',');
                 // var results = await IQueryableExtensions.SelectDynamic<TModel>(query, tab).ToListAsync();
-               var res = await query.SelectDynamic(tab).ToListAsync();
+                var res = await query.SelectDynamic(tab).ToListAsync();
 
                 return res.Select((x) => IQueryableExtensions.SelectObject(x, tab)).ToList();
             }
@@ -182,9 +188,7 @@ namespace APILibrary
                 return Ok(ToJsonList(query.ToList()));
             }
 
-         
-
-}
+        }
 
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TModel>> GetById([FromRoute] int id, [FromQuery] string fields)
@@ -195,8 +199,7 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(fields))
             {
                 var tab = new List<string>(fields.Split(','));
-                if (!tab.Contains("id"))
-                    tab.Add("id");
+                if (!tab.Contains("id")) tab.Add("id");
                 var result = query.SelectModel(tab.ToArray()).SingleOrDefault(x => x.ID == id);
                 if (result != null)
                 {
@@ -205,7 +208,10 @@ namespace APILibrary
                 }
                 else
                 {
-                    return NotFound(new { Message = $"ID {id} not found" });
+                    return NotFound(new
+                    {
+                        Message = $"ID {id} not found"
+                    });
                 }
             }
             else
@@ -218,7 +224,12 @@ namespace APILibrary
                 }
                 else
                 {
-                    return NotFound(new { Message = $"ID {id} not found" });
+                    return NotFound(new
+                    {
+                        Message = $"ID {id} not found"
+                    });
                 }
             }
         }
+    }
+}
