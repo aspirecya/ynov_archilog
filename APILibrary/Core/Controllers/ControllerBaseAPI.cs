@@ -140,13 +140,9 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
-                int countOfData = query.Count();
+                int dataCount = query.Count();
 
-                HttpContext.Response.Headers.Add("Link", rangeArray[0] + "-" + rangeArray[1]);
-                HttpContext.Response.Headers.Add("Content-Range", rangeArray[0] + "-" + rangeArray[1] + "/" + countOfData);
-                HttpContext.Response.Headers.Add("Accept-Range", "50");
-
-                query = query.SelectRange(rangeArray[0], rangeArray[1]);
+                query = query.SelectRange(this.HttpContext, dataCount, rangeArray[0], rangeArray[1]);
             }
 
             if (!string.IsNullOrWhiteSpace(asc))
