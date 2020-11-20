@@ -52,49 +52,59 @@ namespace APILibrary.Core.Extensions
         }
         public static IQueryable<TModel> Filtres<TModel>(this IQueryable<TModel> query, string key, string value)
         {
-            Expression finalExpression = Expression.Constant(true);
+            Expression finalExpression = Expression.Constant(false);
             var type = typeof(TModel);
             var property = type.GetProperty(key);// get type of property string datetime ect
             ParameterExpression pe = Expression.Parameter(typeof(TModel), "s"); // get the type of data pizza or customer
             MemberExpression me = Expression.Property(pe, key);// get the property to request
 
+
+            string replacx(string replacx,char[] characs)
+            {
+                foreach(char charac in characs)
+                {
+                    replacx = replacx.Replace(charac, ' ');
+                }
+                return replacx;
+            }
+
+
             var xx = value.Split(",");// serch if operator
             if (xx.Length > 1)
             {
                 Expression expression = null;
-                if (value.Contains("]") && property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(int))
+                if (value.Contains("]") && property.PropertyType == typeof(DateTime) || value.Contains("]") && property.PropertyType == typeof(int))
                 {
-                    /*if (value.Contains("[,"))// inferior
+                    if (value.Contains("[,"))// inferior
                     {
-                            value = value.TrimEnd('[', ',', ']');
-                            ConstantExpression constant = Expression.Constant(value, property.PropertyType);
+                        value = replacx(value, new char[] { '[', ',', ']' });
+                        ConstantExpression constant = Expression.Constant(Convert.ChangeType(value, property.PropertyType));
                             finalExpression = Expression.LessThanOrEqual(me, constant);
                     }
                     else if (value.Contains(",]"))// superior
                     {
-                        value = value.TrimEnd('[', ',', ']');
-                        ConstantExpression constant = Expression.Constant(value, property.PropertyType);
+                        value = replacx(value, new char[] { '[', ',', ']' });
+                        ConstantExpression constant = Expression.Constant(Convert.ChangeType(value, property.PropertyType));
                         finalExpression = Expression.GreaterThanOrEqual(me, constant);
                     }
                     else // fourchette (beetween)
                     {
                         Expression expression2 = null;
-                        value = value.TrimEnd('[',']');
+                        value = replacx(value, new char[] { '[',']' });
                         var x = value.Split(",");
-                        ConstantExpression constant1 = Expression.Constant(x[0], property.PropertyType);
-                        ConstantExpression constant2 = Expression.Constant(x[1], property.PropertyType);
+                        ConstantExpression constant1 = Expression.Constant(Convert.ChangeType(x[0], property.PropertyType));
+                        ConstantExpression constant2 = Expression.Constant(Convert.ChangeType(x[1], property.PropertyType));
                         expression = Expression.GreaterThanOrEqual(me, constant1);
                         expression2 = Expression.LessThanOrEqual(me, constant2);
                         finalExpression = Expression.And(finalExpression, expression);
                         finalExpression = Expression.And(finalExpression, expression2);
-                    }*/
+                    }
                 }
                 else // OR 
                 {
                     foreach(var x in xx)
                     {
-                        var concerted = Convert.ChangeType(x, typeof(object));
-                        ConstantExpression constant = Expression.Constant(concerted, property.PropertyType);
+                        ConstantExpression constant = Expression.Constant(Convert.ChangeType(x, property.PropertyType));
                         expression = Expression.Equal(me, constant);
                         finalExpression = Expression.Or(finalExpression, expression);
                     }
@@ -103,8 +113,9 @@ namespace APILibrary.Core.Extensions
             }
             else // JUST EQUAL
             {
-                ConstantExpression constant = Expression.Constant(value, property.PropertyType); // create value to compare with type
-                finalExpression = Expression.Equal(me, constant); // EQUAL EX: EMAIL==POKEMON@POKEMON.COM
+                    var w = Convert.ChangeType(value, property.PropertyType);
+                    ConstantExpression constant = Expression.Constant(w); // create value to compare with type
+                    finalExpression = Expression.Equal(me, constant); // EQUAL EX: EMAIL==POKEMON@POKEMON.COM
             }
           
 

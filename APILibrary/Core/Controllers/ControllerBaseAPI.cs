@@ -201,7 +201,7 @@ namespace APILibrary
         }
 
         // get fields by id
-        [HttpGet("{id}")]
+      /*  [HttpGet("{id}")]
         public virtual async Task<ActionResult<TModel>> GetById([FromRoute] int id, [FromQuery] string fields)
         {
             var query = _context.Set<TModel>().AsQueryable();
@@ -242,5 +242,5 @@ namespace APILibrary
                 }
             }
         }
-    }
+    }*/
 }
