@@ -137,8 +137,7 @@ namespace APILibrary
         {
             var query = _context.Set<TModel>().AsQueryable();
 
-            var parma = Request.Query.Where((x) => x.Key != "fields" && x.Key != "asc" && x.Key != "desc");
-            Console.WriteLine(parma.Count());
+            var parma = Request.Query.Where((x) => x.Key != "fields" && x.Key != "asc" && x.Key != "desc" && x.Key != "range");
 
             if (!string.IsNullOrWhiteSpace(range))
             {
@@ -181,7 +180,7 @@ namespace APILibrary
                             query = query.Filtres(element.Key, element.Value);
                 }
             }
-            int i = 1;
+
 
             if (!string.IsNullOrWhiteSpace(fields))
             {

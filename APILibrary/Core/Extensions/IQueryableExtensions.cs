@@ -158,28 +158,28 @@ namespace APILibrary.Core.Extensions
         {
             // fail
 
-            //int acceptRange = 50;
+            int acceptRange = 50;
 
-            //var queryString = HttpUtility.ParseQueryString(httpContext.Request.QueryString.ToString());
-            //var requestUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}{httpContext.Request.Path}";
+            var queryString = HttpUtility.ParseQueryString(httpContext.Request.QueryString.ToString());
+            var requestUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}{httpContext.Request.Path}";
 
-            //queryString.Set("range", $"0-{range}");
-            //var first = $"{requestUrl}?{queryString}; rel=\"first\", ";
+            queryString.Set("range", $"0-{range}");
+            var first = $"{requestUrl}?{queryString}; rel=\"first\", ";
 
-            //queryString.Set("range", $"{Math.Max(0, start-range)}-{range}");
-            //var prev = $"{requestUrl}?{queryString}; rel=\"prev\", ";
-            
-            //queryString.Set("range", $"KEKW");
-            //var next = $"{requestUrl}?{queryString}; rel=\"next\", ";
+            queryString.Set("range", $"{Math.Max(0, start - range)}-{Math.Max(0, range - start)}");
+            var prev = $"{requestUrl}?{queryString}; rel=\"prev\", ";
 
-            //queryString.Set("range", $"{count-range}-{count}");
-            //var last = $"{requestUrl}?{queryString}; rel=\"last\",";
+            queryString.Set("range", $"{start + range}-{Math.Max(count, 2 * range)}");
+            var next = $"{requestUrl}?{queryString}; rel=\"next\", ";
 
-            //var linkString = $"{first}{prev}{next}{last}";
+            queryString.Set("range", $"{count}-{count+range}");
+            var last = $"{requestUrl}?{queryString}; rel=\"last\",";
 
-            //httpContext.Response.Headers.Add("Content-Range", start + "-" + range + "/" + count);
-            //httpContext.Response.Headers.Add("Accept-Range", $"{acceptRange}");
-            //httpContext.Response.Headers.Add("Link", $"{linkString}");
+            var linkString = $"{first}{prev}{next}{last}";
+
+            httpContext.Response.Headers.Add("Content-Range", start + "-" + range + "/" + count);
+            httpContext.Response.Headers.Add("Accept-Range", $"{acceptRange}");
+            httpContext.Response.Headers.Add("Link", $"{linkString}");
 
             return query.Skip(start).Take(range);
         }
