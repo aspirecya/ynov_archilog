@@ -5,10 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Core\" />
-    <Folder Include="Core\Attributes\" />
     <Folder Include="Core\Controllers\" />
-    <Folder Include="Core\Model\" />
     <Folder Include="Core\Extensions\" />
   </ItemGroup>
   <ItemGroup>

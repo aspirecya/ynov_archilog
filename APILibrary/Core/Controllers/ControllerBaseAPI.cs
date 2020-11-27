@@ -131,14 +131,37 @@ namespace APILibrary
             }
         }
 
+        [Route("search")]
+        [HttpGet]
+        public virtual async Task<ActionResult<IEnumerable<dynamic>>> Search([FromQuery] string sort)
+        {
+            var query = _context.Set<TModel>().AsQueryable();// query Request.Query.Keys
+            var parameters = Request.Query.Where((x) => x.Key != "sort");
+            foreach (var element in parameters)
+            {
+                query = query.QuerySearch(element.Key, element.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(sort))
+            {
+                var x = sort.Split(',');
+
+                foreach (string element in x)
+                {
+                    query.OrderByx(element, true);
+                }
+            }
+
+            return Ok(ToJsonList(query.ToList()));
+        }
+
         // get all by field
         [HttpGet]
         public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields, [FromQuery] string asc, [FromQuery] string desc, [FromQuery] string range)
         {
             var query = _context.Set<TModel>().AsQueryable();
 
-            var parma = Request.Query.Where((x) => x.Key != "fields" && x.Key != "asc" && x.Key != "desc" && x.Key != "range");
-
+            int i = 0;
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
@@ -150,10 +173,7 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(asc))
             {
                 var x = asc.Split(',');
-                /*foreach (string element in x)
-                        {
-                            finish = finish.OrderBy(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
-                        }*/
+
                 foreach (string element in x)
                 {
                     query = query.OrderByx(element, false);
@@ -162,25 +182,27 @@ namespace APILibrary
             if (!string.IsNullOrWhiteSpace(desc))
             {
                 var x = desc.Split(',');
-                /* foreach (string element in x)
-                         {
-                             finish = finish.OrderByDescending(p => p.GetType().GetProperty(element).GetValue(p)).ToList();
-                         }*/
+
                 foreach (string element in x)
                 {
                     query = query.OrderByx(element, true);
                 }
 
             }
-            if (parma.Count() > 0 )
+
+            if (Request != null)
             {
-                Console.WriteLine(parma.Count());
-                foreach (var element in parma)
+                var parma = Request.Query.Where((x) => x.Key != "fields" && x.Key != "asc" && x.Key != "desc" && x.Key != "range");
+
+                if (parma.Count() > 0 )
                 {
-                            query = query.Filtres(element.Key, element.Value);
+                    Console.WriteLine(parma.Count());
+                    foreach (var element in parma)
+                    {
+                        query = query.Filtres(element.Key, element.Value);
+                    }
                 }
             }
-
 
             if (!string.IsNullOrWhiteSpace(fields))
             {
@@ -194,52 +216,50 @@ namespace APILibrary
             {
                 return Ok(ToJsonList(query.ToList()));
             }
-
         }
-
-        }
-
-        // get fields by id
-      /*  [HttpGet("{id}")]
-        public virtual async Task<ActionResult<TModel>> GetById([FromRoute] int id, [FromQuery] string fields)
-        {
-            var query = _context.Set<TModel>().AsQueryable();
-            //solution 2: optimisation de la requete SQL
-
-            if (!string.IsNullOrWhiteSpace(fields))
-            {
-                var tab = new List<string>(fields.Split(','));
-                if (!tab.Contains("id")) tab.Add("id");
-                var result = query.SelectModel(tab.ToArray()).SingleOrDefault(x => x.ID == id);
-                if (result != null)
-                {
-                    var tabFields = fields.Split(',');
-                    return Ok(IQueryableExtensions.SelectObject(result, tabFields));
-                }
-                else
-                {
-                    return NotFound(new
-                    {
-                        Message = $"ID {id} not found"
-                    });
-                }
-            }
-            else
-            {
-                var result = query.SingleOrDefault(x => x.ID == id);
-                if (result != null)
-                {
-
-                    return Ok(ToJson(result));
-                }
-                else
-                {
-                    return NotFound(new
-                    {
-                        Message = $"ID {id} not found"
-                    });
-                }
-            }
-        }
-    }*/
+    }
 }
+
+// get fields by id
+/*  [HttpGet("{id}")]
+  public virtual async Task<ActionResult<TModel>> GetById([FromRoute] int id, [FromQuery] string fields)
+  {
+      var query = _context.Set<TModel>().AsQueryable();
+      //solution 2: optimisation de la requete SQL
+
+      if (!string.IsNullOrWhiteSpace(fields))
+      {
+          var tab = new List<string>(fields.Split(','));
+          if (!tab.Contains("id")) tab.Add("id");
+          var result = query.SelectModel(tab.ToArray()).SingleOrDefault(x => x.ID == id);
+          if (result != null)
+          {
+              var tabFields = fields.Split(',');
+              return Ok(IQueryableExtensions.SelectObject(result, tabFields));
+          }
+          else
+          {
+              return NotFound(new
+              {
+                  Message = $"ID {id} not found"
+              });
+          }
+      }
+      else
+      {
+          var result = query.SingleOrDefault(x => x.ID == id);
+          if (result != null)
+          {
+
+              return Ok(ToJson(result));
+          }
+          else
+          {
+              return NotFound(new
+              {
+                  Message = $"ID {id} not found"
+              });
+          }
+      }
+  }
+}*/
