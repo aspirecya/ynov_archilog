@@ -137,21 +137,21 @@ namespace APILibrary
         {
             var query = _context.Set<TModel>().AsQueryable();// query Request.Query.Keys
             var parameters = Request.Query.Where((x) => x.Key != "sort");
+     
+
             foreach (var element in parameters)
             {
                 query = query.QuerySearch(element.Key, element.Value);
             }
-
             if (!string.IsNullOrWhiteSpace(sort))
             {
                 var x = sort.Split(',');
 
                 foreach (string element in x)
                 {
-                    query.OrderByx(element, true);
+                    query = query.OrderByx(element, true);
                 }
             }
-
             return Ok(ToJsonList(query.ToList()));
         }
 
@@ -161,7 +161,7 @@ namespace APILibrary
         {
             var query = _context.Set<TModel>().AsQueryable();
 
-            int i = 0;
+  
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
