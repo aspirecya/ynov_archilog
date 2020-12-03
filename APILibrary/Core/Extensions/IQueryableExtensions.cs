@@ -66,7 +66,7 @@ namespace APILibrary.Core.Extensions
 
         public static IQueryable<TModel> Filtres<TModel>(this IQueryable<TModel> query, string key, string value)
         {
-            Expression finalExpression = Expression.Constant(null);
+            Expression finalExpression = Expression.Constant(true);
             var type = typeof(TModel);
             var property = type.GetProperty(key);// get type of property string datetime ect
             ParameterExpression pe = Expression.Parameter(typeof(TModel), "s"); // get the type of data pizza or customer
