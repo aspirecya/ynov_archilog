@@ -11,7 +11,7 @@ namespace APILibrary
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ControllerBaseUser<TModel, TContext> : ControllerBase where TModel : UserBase where TContext : DbContext
+    public class ControllerBaseUser<TModel, TContext> : ControllerBase where TModel : UserBase where TContext : DbBase
     {
         protected readonly DbContext _context;
         public ControllerBaseUser(DbContext context)
@@ -19,7 +19,8 @@ namespace APILibrary
             this._context = context;
         }
 
-        public UserBase getUserById(int id)
+        [HttpGet]
+        public UserBase getUserById([FromRoute] int id)
         {
             return _context.Set<TModel>().FirstOrDefault(x => x.ID == id);
         }

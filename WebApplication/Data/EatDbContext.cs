@@ -1,11 +1,12 @@
 ﻿using System;
+using APILibrary.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using WebApplication.Model;
 
 namespace WebApplication.Data
 {
-    public class EatDbContext : DbContext
+    public class EatDbContext : DbBase
     {
         public EatDbContext(DbContextOptions options) : base(options)
         {
@@ -14,6 +15,6 @@ namespace WebApplication.Data
 
         public DbSet<Pizza> Pizzas { get; set; }
         public DbSet<Customer> Customers { get; set; }
-        public DbSet<User> Users { get; set; }
+
     }
 }

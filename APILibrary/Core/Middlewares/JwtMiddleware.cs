@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using APILibrary.Core.Models;
+using APILibrary.Core.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -13,19 +15,18 @@ namespace APILibrary.Core.Middlewares
     public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-        private DbContext _dbContext;
+        private readonly IUserService _userService;
         private static string Secret = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
 
-        public JwtMiddleware(RequestDelegate next, DbContext context)
+        public JwtMiddleware(RequestDelegate next)
         {
             _next = next;
-
         }
 
         public async Task Invoke(HttpContext context)
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-
+            
             if (token != null)
                 attachUserToContext(context, token);
 
@@ -53,7 +54,12 @@ namespace APILibrary.Core.Middlewares
 
                 // TOFIX: TOFIX: TOFIX: TOFIX: TOFIX: TOFIX: TOFIX: 
                 // attach user to context on successful jwt validation
-                // context.Items["User"] = userService.GetById(userId);
+                context.Items["User"] = new
+                {
+                    ID = 1,
+                    Username = "test",
+                    Password = "test"
+                };
             }
             catch
             {

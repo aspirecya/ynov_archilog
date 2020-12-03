@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using APILibrary.Core.Attributes;
 using APILibrary.Core.Extensions;
 using APILibrary.Core.Model;
+using APILibrary.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +16,11 @@ namespace APILibrary
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ControllerBaseAPI<TModel, TContext> : ControllerBase where TModel : ModelBase where TContext : DbContext
+    public class ControllerBaseAPI<TModel, TContext> : ControllerBase where TModel : ModelBase where TContext : DbBase
     {
-        protected readonly DbContext _context;
+        protected readonly DbBase _context;
 
-        public ControllerBaseAPI(DbContext context)
+        public ControllerBaseAPI(DbBase context)
         {
             this._context = context;
         }
@@ -62,8 +63,8 @@ namespace APILibrary
             return expo;
         }
 
-        // create
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<TModel>> CreateItem([FromBody] TModel item)
         {
             if (ModelState.IsValid)
@@ -80,6 +81,7 @@ namespace APILibrary
 
         // delete
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult<TModel>> DeleteAsync([FromRoute] int id)
         {
             TModel item = await _context.Set<TModel>().FindAsync(id);
@@ -100,6 +102,7 @@ namespace APILibrary
 
         // update
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult<TModel>> UpdateItem([FromRoute] int id, [FromBody] TModel item)
         {
             bool result = await _context.Set<TModel>().AnyAsync(x => x.ID == id);
@@ -161,6 +164,7 @@ namespace APILibrary
 
         // get all by field
         [HttpGet]
+        [Authorize]
         public virtual async Task<ActionResult<IEnumerable<dynamic>>> GetAllAsync([FromQuery] string fields, [FromQuery] string asc, [FromQuery] string desc, [FromQuery] string range)
         {
             var query = _context.Set<TModel>().AsQueryable();
@@ -221,49 +225,48 @@ namespace APILibrary
                 return Ok(ToJsonList(query.ToList()));
             }
         }
+
+        // get fields by id
+        [HttpGet("{id}")]
+        public virtual async Task<ActionResult<TModel>> GetById([FromRoute] int id, [FromQuery] string fields)
+        {
+            var query = _context.Set<TModel>().AsQueryable();
+            //solution 2: optimisation de la requete SQL
+
+            if (!string.IsNullOrWhiteSpace(fields))
+            {
+                var tab = new List<string>(fields.Split(','));
+                if (!tab.Contains("id")) tab.Add("id");
+                var result = query.SelectModel(tab.ToArray()).SingleOrDefault(x => x.ID == id);
+                if (result != null)
+                {
+                    var tabFields = fields.Split(',');
+                    return Ok(IQueryableExtensions.SelectObject(result, tabFields));
+                }
+                else
+                {
+                    return NotFound(new
+                    {
+                        Message = $"ID {id} not found"
+                    });
+                }
+            }
+            else
+            {
+                var result = query.SingleOrDefault(x => x.ID == id);
+                if (result != null)
+                {
+
+                    return Ok(ToJson(result));
+                }
+                else
+                {
+                    return NotFound(new
+                    {
+                        Message = $"ID {id} not found"
+                    });
+                }
+            }
+        }
     }
 }
-
-// get fields by id
-/*  [HttpGet("{id}")]
-  public virtual async Task<ActionResult<TModel>> GetById([FromRoute] int id, [FromQuery] string fields)
-  {
-      var query = _context.Set<TModel>().AsQueryable();
-      //solution 2: optimisation de la requete SQL
-
-      if (!string.IsNullOrWhiteSpace(fields))
-      {
-          var tab = new List<string>(fields.Split(','));
-          if (!tab.Contains("id")) tab.Add("id");
-          var result = query.SelectModel(tab.ToArray()).SingleOrDefault(x => x.ID == id);
-          if (result != null)
-          {
-              var tabFields = fields.Split(',');
-              return Ok(IQueryableExtensions.SelectObject(result, tabFields));
-          }
-          else
-          {
-              return NotFound(new
-              {
-                  Message = $"ID {id} not found"
-              });
-          }
-      }
-      else
-      {
-          var result = query.SingleOrDefault(x => x.ID == id);
-          if (result != null)
-          {
-
-              return Ok(ToJson(result));
-          }
-          else
-          {
-              return NotFound(new
-              {
-                  Message = $"ID {id} not found"
-              });
-          }
-      }
-  }
-}*/
