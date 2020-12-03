@@ -4,6 +4,13 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Migrations\20201127171523_Users.cs" />
+    <Compile Remove="Migrations\20201127171523_Users.Designer.cs" />
+    <Compile Remove="Migrations\20201127230012_Users2.cs" />
+    <Compile Remove="Migrations\20201127230012_Users2.Designer.cs" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\APILibrary\APILibrary.csproj">
@@ -11,7 +18,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Model\" />
     <Folder Include="Data\" />
   </ItemGroup>
   <ItemGroup>

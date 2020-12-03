@@ -133,6 +133,7 @@ namespace APILibrary
 
         [Route("search")]
         [HttpGet]
+        [Authorize]
         public virtual async Task<ActionResult<IEnumerable<dynamic>>> Search([FromQuery] string sort)
         {
             var query = _context.Set<TModel>().AsQueryable();// query Request.Query.Keys
@@ -148,12 +149,14 @@ namespace APILibrary
 
                 foreach (string element in x)
                 {
-                    query.OrderByx(element, true);
+                    query.OrderByx(element, false);
                 }
             }
 
             return Ok(ToJsonList(query.ToList()));
         }
+
+   
 
         // get all by field
         [HttpGet]
@@ -161,7 +164,6 @@ namespace APILibrary
         {
             var query = _context.Set<TModel>().AsQueryable();
 
-            int i = 0;
             if (!string.IsNullOrWhiteSpace(range))
             {
                 var rangeArray = Array.ConvertAll(range.Split('-'), int.Parse);
@@ -194,7 +196,7 @@ namespace APILibrary
             {
                 var parma = Request.Query.Where((x) => x.Key != "fields" && x.Key != "asc" && x.Key != "desc" && x.Key != "range");
 
-                if (parma.Count() > 0 )
+                if (parma.Count() > 0)
                 {
                     Console.WriteLine(parma.Count());
                     foreach (var element in parma)

@@ -37,6 +37,7 @@ namespace APILibrary.Core.Extensions
             }
             return expo;
         }
+
         public static IQueryable<TModel> OrderByx<TModel>(this IQueryable<TModel> query, string orderByProperty, bool desc)
         {
             string command = desc ? "OrderByDescending" : "OrderBy";
@@ -62,6 +63,7 @@ namespace APILibrary.Core.Extensions
 
             finalExpression = Expression.Or(finalExpression, call);*/
         }
+
         public static IQueryable<TModel> Filtres<TModel>(this IQueryable<TModel> query, string key, string value)
         {
             Expression finalExpression = Expression.Constant(false);
@@ -136,6 +138,7 @@ namespace APILibrary.Core.Extensions
             return query.Where(ExpressionTree);
 
         }
+
         public static IQueryable<dynamic> SelectDynamic<TModel>(this IQueryable<TModel> query, string[] fields) where TModel : ModelBase
         {
             var parameter = Expression.Parameter(typeof(TModel), "x");
@@ -150,7 +153,6 @@ namespace APILibrary.Core.Extensions
            
             return query.Select(lambda);
         }
-
 
         public static IQueryable<TModel> QuerySearch<TModel>(this IQueryable<TModel> query, string key, string value)
         {
